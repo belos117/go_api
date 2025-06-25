@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -17,13 +18,14 @@ var todos = []todo{
 	{ID: 3, Title: "Deploy to production", Completed: false},
 }
 
+func getTodos(context *gin.Context) {
+	context.IndentedJSON(http.StatusOK, todos)
+}
+
 func main() {
 	r := gin.Default()
 
 	r.GET("/todos", getTodos)
-	r.POST("/todos", createTodo)
-	r.PUT("/todos/:id", updateTodo)
-	r.DELETE("/todos/:id", deleteTodo)
 
-	r.Run("localhost:8989") // Run on port 8080
+	r.Run("localhost:8989") // Run on port 8989
 }
