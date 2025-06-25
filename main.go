@@ -4,6 +4,10 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+
+	"errors"
+
+	"strconv"
 )
 
 type todo struct {
@@ -35,11 +39,49 @@ func addTodo(context *gin.Context) {
 	context.IndentedJSON(http.StatusCreated, newTodo)
 }
 
+func getTodo(context *gin.Context) {
+	id := context.Param("id")
+
+	todo, err := getTodoByID(id)
+	if err != nil {
+		context.IndentedJSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	context.IndentedJSON(http.StatusOK, todo)
+}
+
+func toggleTodoStatus(context *gin.Context) {
+	id := context.Param("id")
+
+	todo, err := getTodoByID(id)
+	if err != nil {
+		context.IndentedJSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	todo.Completed = !todo.Completed
+	context.IndentedJSON(http.StatusOK, todo)
+}
+
+func getTodoByID(id string) (*todo, error) {
+	intID, err := strconv.Atoi(id)
+	if err != nil {
+		return nil, errors.New("invalid id")
+	}
+	for i, t := range todos {
+		if t.ID == intID {
+			return &todos[i], nil
+		}
+	}
+	return nil, errors.New("todo not found")
+}
+
 func main() {
 	r := gin.Default()
-
 	r.GET("/todos", getTodos)
 	r.POST("/todos", addTodo)
-
+	r.PATCH("/todos/:id", toggleTodoStatus)
+	r.GET("/todos/:id", getTodo)
 	r.Run("localhost:8989") // Run on port 8989
 }
